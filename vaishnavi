@@ -1,0 +1,69 @@
+import random
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Parameters
+population_size = 100  # Size of the population
+gene_length = 10       # Number of genes (traits)
+generations = 50       # Number of generations to evolve
+mutation_rate = 0.01   # Probability of mutation
+
+# Step 1: Create Initial Population
+def create_population(size, gene_length):
+    return [np.random.randint(2, size=gene_length).tolist() for _ in range(size)]
+
+# Step 2: Define Fitness Function
+def fitness(individual):
+    # Example fitness function: count the number of 1s (traits)
+    return sum(individual)
+
+# Step 3: Selection Process
+def select_parents(population):
+    # Select parents based on fitness
+    weights = [fitness(ind) for ind in population]
+    return random.choices(population, weights=weights, k=2)
+
+# Step 4: Crossover Function
+def crossover(parent1, parent2):
+    point = random.randint(1, gene_length - 1)
+    child1 = parent1[:point] + parent2[point:]
+    child2 = parent2[:point] + parent1[point:]
+    return child1, child2
+
+# Step 5: Mutation Function
+def mutate(individual):
+    for i in range(len(individual)):
+        if random.random() < mutation_rate:
+            individual[i] = 1 - individual[i]  # Flip the gene
+
+# Step 6: Main Evolution Loop
+def evolve(population):
+    for generation in range(generations):
+        new_population = []
+        for _ in range(population_size // 2):
+            parent1, parent2 = select_parents(population)
+            child1, child2 = crossover(parent1, parent2)
+            mutate(child1)
+            mutate(child2)
+            new_population.extend([child1, child2])
+        population = new_population
+        best_fitness = max(fitness(ind) for ind in population)
+        print(f"Generation {generation + 1}: Best Fitness = {best_fitness}")
+    return population
+
+# Step 7: Run the Simulation
+# Create initial population
+population = create_population(population_size, gene_length)
+
+# Evolve the population
+final_population = evolve(population)
+
+# Step 8: Plotting the final population's fitness
+fitness_values = [fitness(ind) for ind in final_population]
+plt.hist(fitness_values, bins=range(gene_length + 1), alpha=0.7, color='blue')
+plt.title('Final Population Fitness Distribution')
+plt.xlabel('Fitness (Number of 1s)')
+plt.ylabel('Frequency')
+plt.xticks(range(gene_length + 1))
+plt.grid(axis='y')
+plt.show()
